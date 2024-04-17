@@ -1,0 +1,38 @@
+{
+  "name": "your-project-name",
+  "version": "1.0.0",
+  "description": "Your project description",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "dependencies": {
+    "@adminjs/express": "^6.1.0",
+    "@adminjs/mikroorm": "^4.0.0",
+    "@adminjs/mongoose": "^4.1.0",
+    "@adminjs/sequelize": "^4.1.1",
+    "@adminjs/typeorm": "^5.0.1",
+    "@mikro-orm/core": "^6.2.1",
+    "@mikro-orm/postgresql": "^6.2.1",
+    "adminjs": "^7.8.1",
+    "connect-pg-simple": "^9.0.1",
+    "express": "^4.19.2",
+    "express-formidable": "^1.2.0",
+    "express-session": "^1.18.0",
+    "pg": "^8.11.5",
+    "sequelize": "^6.37.3",
+    "tslib": "^2.6.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.17.0",
+    "@babel/preset-env": "^7.17.0",
+    "@babel/register": "^7.17.0",
+    "nodemon": "^2.0.22"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ]
+  }
+}
