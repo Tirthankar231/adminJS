@@ -9,6 +9,8 @@ import session from 'express-session';
 import sequelize from './database.js'; // Import Sequelize instance
 import { User } from './models/User.js';
 import { Order } from './models/Order.js';
+import { Invoice } from './models/invoice.js'
+import { Return } from './models/return.js'
 import ConnectPgSimple from 'connect-pg-simple';
 import dotenv from 'dotenv';
 
@@ -54,29 +56,19 @@ const start = async () => {
   const app = express();
 
   const adminOptions = {
-    // Include User and Order resources in resources array
+    // Include User, Order, Invoice, and Return resources in resources array
     resources: [
       {
         resource: User,
         options: {
           properties: {
-            id: {
-              isVisible: { list: true, show: true, edit: false },
-            },
-            name: {
-              isVisible: { list: true, show: true, edit: true },
-            },
-            email: {
-              isVisible: { list: true, show: true, edit: true },
-            },
+            id: { isVisible: { list: true, show: true, edit: false } },
+            name: { isVisible: { list: true, show: true, edit: true } },
+            email: { isVisible: { list: true, show: true, edit: true } },
           },
           actions: {
-            new: {
-              isAccessible: ({ currentAdmin }) => currentAdmin && currentAdmin.email === DEFAULT_ADMIN.email,
-            },
-            edit: {
-              isAccessible: ({ currentAdmin }) => currentAdmin && currentAdmin.email === DEFAULT_ADMIN.email,
-            },
+            new: { isAccessible: ({ currentAdmin }) => currentAdmin && currentAdmin.email === DEFAULT_ADMIN.email },
+            edit: { isAccessible: ({ currentAdmin }) => currentAdmin && currentAdmin.email === DEFAULT_ADMIN.email },
           },
         },
       },
@@ -84,34 +76,52 @@ const start = async () => {
         resource: Order,
         options: {
           properties: {
-            id: {
-              isVisible: { list: true, show: true, edit: false },
-            },
-            status: {
-              isVisible: { list: true, show: true, edit: true },
-            },
-            deliveryAddress: {
-              isVisible: { list: true, show: true, edit: true },
-            },
-            amount: {
-              isVisible: { list: true, show: true, edit: true },
-            },
+            id: { isVisible: { list: true, show: true, edit: false } },
+            status: { isVisible: { list: true, show: true, edit: true } },
+            deliveryAddress: { isVisible: { list: true, show: true, edit: true } },
+            amount: { isVisible: { list: true, show: true, edit: true } },
           },
           actions: {
-            new: {
-              isAccessible: ({ currentAdmin }) => currentAdmin && currentAdmin.email === DEFAULT_ADMIN.email,
-            },
-            edit: {
-              isAccessible: ({ currentAdmin }) => currentAdmin && currentAdmin.email === DEFAULT_ADMIN.email,
-            },
-            delete: {
-              isAccessible: ({ currentAdmin }) => currentAdmin && currentAdmin.email === DEFAULT_ADMIN.email,
-            },
+            new: { isAccessible: ({ currentAdmin }) => currentAdmin && currentAdmin.email === DEFAULT_ADMIN.email },
+            edit: { isAccessible: ({ currentAdmin }) => currentAdmin && currentAdmin.email === DEFAULT_ADMIN.email },
+            delete: { isAccessible: ({ currentAdmin }) => currentAdmin && currentAdmin.email === DEFAULT_ADMIN.email },
+          },
+        },
+      },
+      {
+        resource: Invoice,
+        options: {
+          properties: {
+            billingAddress: { isVisible: { list: true, show: true, edit: true } },
+            invoiceLink: { isVisible: { list: true, show: true, edit: true } },
+            finderFees: { isVisible: { list: true, show: true, edit: true } },
+            amount: { isVisible: { list: true, show: true, edit: true } },
+          },
+          actions: {
+            new: { isAccessible: ({ currentAdmin }) => currentAdmin && currentAdmin.email === DEFAULT_ADMIN.email },
+            edit: { isAccessible: ({ currentAdmin }) => currentAdmin && currentAdmin.email === DEFAULT_ADMIN.email },
+            delete: { isAccessible: ({ currentAdmin }) => currentAdmin && currentAdmin.email === DEFAULT_ADMIN.email },
+          },
+        },
+      },
+      {
+        resource: Return,
+        options: {
+          properties: {
+            itemId: { isVisible: { list: true, show: true, edit: true } },
+            reason: { isVisible: { list: true, show: true, edit: true } },
+            returnImages: { isVisible: { list: true, show: true, edit: true } },
+            status: { isVisible: { list: true, show: true, edit: true } },
+          },
+          actions: {
+            new: { isAccessible: ({ currentAdmin }) => currentAdmin && currentAdmin.email === DEFAULT_ADMIN.email },
+            edit: { isAccessible: ({ currentAdmin }) => currentAdmin && currentAdmin.email === DEFAULT_ADMIN.email },
+            delete: { isAccessible: ({ currentAdmin }) => currentAdmin && currentAdmin.email === DEFAULT_ADMIN.email },
           },
         },
       },
     ],
-  };
+  };  
 
   const admin = new AdminJS(adminOptions);
 
@@ -159,7 +169,7 @@ app.use(session(sessionOptions));
     }
   );
   // Custom authentication middleware for the '/admin/api/resources/orders/actions/list' endpoint
-  const requireAuthenticationForOrders = (req, res, next) => {
+  const requireAuthentication = (req, res, next) => {
     // Check if a token is present in the request headers
     const token = req.headers['authorization'];
 
@@ -178,8 +188,10 @@ app.use(session(sessionOptions));
 };
 
   
-  // Apply authentication middleware to the '/api/orders' endpoint
-  app.use('/admin/api/resources/orders/actions/list', requireAuthenticationForOrders);
+  // Apply authentication middleware to the '/admin/api/resources/orders/actions/list' endpoint
+  app.use('/admin/api/resources/orders/actions/list', requireAuthentication);
+  app.use('/admin/api/resources/invoices/actions/list', requireAuthentication);
+  app.use('/admin/api/resources/returns/actions/list', requireAuthentication);
 
   app.use(admin.options.rootPath, adminRouter);
   
