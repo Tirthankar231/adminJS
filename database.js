@@ -1,8 +1,11 @@
 // File: database.js
 import { Sequelize } from 'sequelize';
+import dotenv from 'dotenv';
 
-const sequelize = new Sequelize('postgresql://postgres:Tirtha@4321@localhost:5432/adminJS', {
-    dialect: 'postgres',
+dotenv.config();
+
+const sequelize = new Sequelize(process.env.DB_CONNECTION_STRING, {
+    dialect: process.env.DIALECT,
   });
 
 export default sequelize;
