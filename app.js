@@ -36,7 +36,6 @@ const authenticate = async (email, password) => {
   if (email === DEFAULT_ADMIN.email && password === DEFAULT_ADMIN.password) {
     return DEFAULT_ADMIN;
   }
-
   // If not the default admin, check the database for the user
   const user = await User.findOne({ where: { email } });
   if (user) {
@@ -159,29 +158,25 @@ app.use(session(sessionOptions));
       name: process.env.ADMINJS_COOKIE_NAME,
     }
   );
-
-  // Custom authentication middleware for the '/api/orders' endpoint
-  const requireAuthenticationForOrders = async (req, res, next) => {
-    // Check if user is authenticated
+  // Custom authentication middleware for the '/admin/api/resources/orders/actions/list' endpoint
+  const requireAuthenticationForOrders = (req, res, next) => {
+    // Check if a token is present in the request headers
     const token = req.headers['authorization'];
-    if (!token || token !== `Bearer ${STATIC_TOKEN}`) {
-      return res.status(401).json({ message: 'Unauthorized' });
+
+    // If token is provided and matches the expected static token, proceed
+    if (token && token === `Bearer ${STATIC_TOKEN}`) {
+        return next();
     }
-  // Check if the user is the default admin
-  if (
-    process.env.EMAIL === DEFAULT_ADMIN.email &&
-    process.env.PASSWORD === DEFAULT_ADMIN.password
-  ) {
-    // Allow access for the default admin
-    return next();
-  }
-  
-  // Check if user is an admin
-  if (req.user && req.user.role === 'admin') {
-    return next();
-  }
-    next();
-  };
+
+    // If no token provided, check if there is a session with user information
+    if ((!token && req.session && req.session.adminUser && req.session.adminUser.email === process.env.EMAIL) || (!token && req.session.adminUser.role === 'admin')) {
+        return next(); // Proceed if authenticated with session
+    }
+
+    // If neither token-based nor session-based authentication succeeds, return unauthorized
+    return res.status(401).json({ message: 'Unauthorized' });
+};
+
   
   // Apply authentication middleware to the '/api/orders' endpoint
   app.use('/admin/api/resources/orders/actions/list', requireAuthenticationForOrders);
